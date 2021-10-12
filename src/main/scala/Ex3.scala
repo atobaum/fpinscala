@@ -71,8 +71,9 @@ object List {
   def reverse[A](as: List[A]): List[A] = foldLeft(as, Nil: List[A])((acc, h) => Cons(h, acc))
 
   // 3-13
-  // TODO: 풀기
-  //  def foldRight2[A, B](as: List[A], z: B)(f: (A, B) => B): B =
+  // 답지 보기
+  def foldRightUsingFoldLeft[A, B](as: List[A], z: B)(f: (A, B) => B): B =
+    foldLeft(reverse(as), z)((acc, x) => f(x, acc))
 
   // 3-14
   def append[A](l: List[A], r: List[A]): List[A] = foldRight(l, r)(Cons(_, _))
@@ -82,6 +83,9 @@ object List {
   // 3-15
   def flat[A](ll: List[List[A]]): List[A] =
     foldRight(ll, Nil: List[A])(append)
+
+  def flat2[A](ll: List[List[A]]): List[A] =
+    foldLeft(ll, Nil: List[A])(append)
 
   // 3-16
   def add1: List[Int] => List[Int] =
@@ -112,7 +116,7 @@ object List {
 
   // 3-21
   def filterUsingFlatMap[A](as: List[A])(f: A => Boolean): List[A] =
-    flatMap(as)(x=>if(f(x)) List(x) else List() )
+    flatMap(as)(x => if (f(x)) List(x) else List())
 
   // 3-22
   def addPointwise(l: List[Int], r: List[Int]): List[Int] = (l, r) match {
@@ -121,12 +125,13 @@ object List {
   }
 
   // 3-23
-  def zipWith[A, B, C](l: List[A], r: List[B])(f: (A, B) => C): List[C] = (l, r)match {
+  def zipWith[A, B, C](l: List[A], r: List[B])(f: (A, B) => C): List[C] = (l, r) match {
     case (Cons(lx, lxs), Cons(rx, rxs)) => Cons(f(lx, rx), zipWith(lxs, rxs)(f))
     case _ => Nil
   }
 
   // 3-24
+  // 답지 보기
   def hasSubsequence[A](sup: List[A], sub: List[A]): Boolean = (sup, sub) match {
     case (Cons(lx, lxs), Cons(rx, rxs)) =>
       if (lx == rx) hasSubsequence(lxs, rxs) || hasSubsequence(lxs, sub)
@@ -146,10 +151,12 @@ object List {
 }
 
 sealed trait Tree[+A]
+
 case class Leaf[A](value: A) extends Tree[A]
+
 case class Branch[A](left: Tree[A], right: Tree[A]) extends Tree[A]
 
-object Tree{
+object Tree {
   // 3-25
   def size[A](t: Tree[A]): Int = t match {
     case Branch(l, r) => size(l) + size(r) + 1
@@ -169,17 +176,30 @@ object Tree{
   }
 
   // 3-28
-  def map[A, B](t: Tree[A])(f: A=>B): Tree[B] = t match {
-    case Branch(l ,r) => Branch(map(l)(f), map(r)(f))
+  def map[A, B](t: Tree[A])(f: A => B): Tree[B] = t match {
+    case Branch(l, r) => Branch(map(l)(f), map(r)(f))
     case Leaf(v) => Leaf(f(v))
   }
 
   // 3-29
-  // TODO: 풀기
-//  def fold[A, B](t: Tree[A])(f: (A, B)=> B):B = t match{
-//    case Branch(l ,r) => Branch(map(l)(f), map(r)(f))
-//    case Leaf(v) => Leaf(f(v))
-//  }
+  // 답지보기
+  def fold[A, B](t: Tree[A])(f: A => B)(g: (B, B) => B): B = t match {
+    case Branch(l, r) => g(fold(l)(f)(g), fold(r)(f)(g))
+    case Leaf(v) => f(v)
+  }
+
+  // 3-25
+  def size2[A]: Tree[A] => Int = fold(_)(x => 1)(_ + _ + 1)
+
+  // 3-26
+  def maximum2: Tree[Int] => Int = fold(_)(x => x)(_.max(_))
+
+  // 3-27
+  def depth2[A]: Tree[A] => Int = fold(_)(x => 1)(_.max(_) + 1)
+
+  // 3-28
+  def map2[A, B](t: Tree[A])(f: A => B): Tree[B] =
+    fold[A, Tree[B]](t)(x => Leaf(f(x)))(Branch(_, _))
 }
 
 object Ex3 {
