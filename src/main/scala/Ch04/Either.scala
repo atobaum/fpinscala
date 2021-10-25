@@ -76,5 +76,7 @@ object Person {
     a <- mkAge(age)
   } yield Person(n, a)
 
+  def mkPerson2(name: String, age: Int): Either[String, Person] = mkName(name).map2(mkAge(age))(Person(_, _))
+
   // 4-8
 }
